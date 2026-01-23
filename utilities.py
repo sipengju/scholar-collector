@@ -51,8 +51,6 @@ def fetch_publications(profile_url, verbose = True):
                 full_doi = pub_details.get('eprint_url', 'N/A')
             if full_doi == 'N/A':
                 full_doi = pub_details.get('pub_url', 'N/A')
-            if full_doi == 'N/A' and url != 'N/A':
-                full_doi = url
 
             # Try to get the primary URL
             url = pub_details.get('url', 'N/A')
@@ -62,6 +60,8 @@ def fetch_publications(profile_url, verbose = True):
                 url = pub_details.get('pub_url', 'N/A')
             if (url == 'N/A') & (full_doi != 'N/A'):
                 url = full_doi  # Use DOI as a fallback URL
+            if full_doi == 'N/A' and url != 'N/A':
+                full_doi = url
 
             if (full_doi != 'N/A'):
                 if is_valid_doi(full_doi.split('/')[-2]+"/"+full_doi.split('/')[-1]):
@@ -86,7 +86,7 @@ def fetch_publications(profile_url, verbose = True):
                 # If no year is available, set date as N/A
                 date_value = 'N/A'
 
-            is_preprint =  "arXiv" in pub_details.get('bib', {}).get('journal', '') or "bioRxiv" in pub_details.get('bib', {}).get('journal', ''),
+            is_preprint =  "arXiv" in pub_details.get('bib', {}).get('journal', '') or "bioRxiv" in pub_details.get('bib', {}).get('journal', '')
             if isinstance(is_preprint, tuple):  # Check if 'issue' is a tuple
                 is_preprint = is_preprint[0] # Extract the first element from the tuple
 
@@ -126,7 +126,10 @@ def fetch_publications(profile_url, verbose = True):
             print("\n")
 
         # Sort the publications
-        publications.sort(key=lambda x: x.get('year', 0), reverse=False)
+        publications.sort(
+            key=lambda x: int(x.get('year')) if str(x.get('year')).isdigit() else 0,
+            reverse=False
+        )
 
         return publications
 
